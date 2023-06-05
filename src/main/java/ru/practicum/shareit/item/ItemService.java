@@ -55,7 +55,7 @@ public class ItemService {
         user.setItems(items);
         return ItemMapper.mapItemToDto(item);
     }
-    
+
     public ItemDto updateItem(ItemDto itemDto, Long id, Long userId) {
         userStorage.getUserById(userId).orElseThrow(() -> {
             log.info("PaI-1. updateItem - user id not found: {}", userId);
