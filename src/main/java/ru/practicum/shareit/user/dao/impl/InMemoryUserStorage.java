@@ -19,15 +19,16 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<String, Long> emailsOfUsers = new HashMap<>();
 
     @Override
-    public Optional<User> createUser(User user) {
+    public User createUser(User user) {
         if (emailsOfUsers.containsKey(user.getEmail())) {
-            return Optional.empty();
+            log.info("createUser - user e-mail is already exists: {}", user.getEmail());
+            throw new AlreadyExistException("Пользователь с данным email уже существует.");
         }
 
         user.setId(generateId());
         users.put(user.getId(), user);
         emailsOfUsers.put(user.getEmail(), user.getId());
-        return Optional.of(user);
+        return user;
     }
 
     @Override
@@ -37,14 +38,14 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         if (user.getName() == null && user.getEmail() != null) {
-            checkEmail(user);
+            updateEmail(user);
             user.setName(users.get(user.getId()).getName());
         }
         if (user.getEmail() == null && user.getName() != null) {
             user.setEmail(users.get(user.getId()).getEmail());
         }
         if (user.getEmail() != null && user.getName() != null) {
-            checkEmail(user);
+            updateEmail(user);
         }
         users.put(user.getId(), user);
         return Optional.of(user);
@@ -57,10 +58,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Optional<User> getUserById(Long id) {
-        if (!users.containsKey(id)) {
-            return Optional.empty();
-        }
-        return Optional.of(users.get(id));
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
@@ -75,10 +73,10 @@ public class InMemoryUserStorage implements UserStorage {
         return ++generatedId;
     }
 
-    private void checkEmail(User user) {
+    private void updateEmail(User user) {
         if (emailsOfUsers.containsKey(user.getEmail())
                 && !emailsOfUsers.get(user.getEmail()).equals(user.getId())) {
-            log.info("PaU-1. updateUser - e-mail is already in use: {}", user.getEmail());
+            log.info("updateUser - e-mail is already in use: {}", user.getEmail());
             throw new AlreadyExistException("Данный email уже занят.");
         }
         if (!emailsOfUsers.containsKey(user.getEmail())) {

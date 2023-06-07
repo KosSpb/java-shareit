@@ -23,8 +23,7 @@ public class ItemController {
     public ItemDto createItem(@RequestBody @Valid ItemDto itemDto,
                               @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         ItemDto createdItem = itemService.createItem(itemDto, userId);
-        log.info("PoI-1. createItem - item \"{}\" with id {} was created.",
-                createdItem.getName(), createdItem.getId());
+        log.info("createItem - item \"{}\" with id {} was created.", createdItem.getName(), createdItem.getId());
         return createdItem;
     }
 
@@ -33,8 +32,7 @@ public class ItemController {
                               @PathVariable(value = "itemId") Long id,
                               @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         ItemDto updatedItem = itemService.updateItem(itemDto, id, userId);
-        log.info("PaI-1. updateItem - item \"{}\" with id {} was updated.",
-                updatedItem.getName(), updatedItem.getId());
+        log.info("updateItem - item \"{}\" with id {} was updated.", updatedItem.getName(), updatedItem.getId());
         return updatedItem;
     }
 

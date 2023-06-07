@@ -3,15 +3,21 @@ package ru.practicum.shareit.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.*;
+import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.exception.NoBodyInRequestException;
+import ru.practicum.shareit.exception.NoIdInRequestException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dao.UserStorage;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.validation.OnCreate;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@Validated
 public class UserService {
     private final UserStorage userStorage;
 
@@ -20,15 +26,9 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public UserDto createUser(UserDto userDto) {
-        if (userDto.getEmail() == null) {
-            log.info("PoU-1. createUser - no e-mail in request body");
-            throw new NoEmailInRequestException("При создании пользователя не был передан email.");
-        }
-        return UserMapper.mapUserToDto(userStorage.createUser(UserMapper.mapDtoToUser(userDto)).orElseThrow(() -> {
-            log.info("PoU-1. createUser - user e-mail is already exists: {}", userDto.getEmail());
-            throw new AlreadyExistException("Пользователь с данным email уже существует.");
-        }));
+    @Validated(OnCreate.class)
+    public UserDto createUser(@Valid UserDto userDto) {
+        return UserMapper.mapUserToDto(userStorage.createUser(UserMapper.mapDtoToUser(userDto)));
     }
 
     public Collection<UserDto> getUsersList() {
@@ -39,7 +39,7 @@ public class UserService {
 
     public UserDto getUserById(Long id) {
         return UserMapper.mapUserToDto(userStorage.getUserById(id).orElseThrow(() -> {
-            log.info("GU-2. getUserById - user id not found: {}", id);
+            log.info("getUserById - user id not found: {}", id);
             throw new NotFoundException("Пользователя с данным id не существует.");
         }));
     }
@@ -49,25 +49,25 @@ public class UserService {
             userDto.setId(id);
         }
         if (userDto.getId() == null && id == null) {
-            log.info("PaU-1. updateUser - no id in request: {}", userDto);
+            log.info("updateUser - no id in request: {}", userDto);
             throw new NoIdInRequestException("При обновлении не был передан ID пользователя.");
         }
         if (userDto.getName() == null && userDto.getEmail() == null) {
-            log.info("PaU-1. updateUser - no body in request: {}", userDto);
+            log.info("updateUser - no body in request: {}", userDto);
             throw new NoBodyInRequestException("При обновлении не были переданы данные о пользователе.");
         }
 
         return UserMapper.mapUserToDto(userStorage.updateUser(UserMapper.mapDtoToUser(userDto)).orElseThrow(() -> {
-            log.info("PaU-1. updateUser - user id not found: {}", userDto);
+            log.info("updateUser - user id not found: {}", userDto);
             throw new NotFoundException("Пользователя с данным id не существует.");
         }));
     }
 
     public void removeUser(Long id) {
         User user = userStorage.removeUser(id).orElseThrow(() -> {
-            log.info("DU-1. removeUser - user id '{}' not found", id);
+            log.info("removeUser - user id '{}' not found", id);
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
-        log.info("DU-1. removeUser - user with email \"{}\" and id {} was removed.", user.getEmail(), id);
+        log.info("removeUser - user with email \"{}\" and id {} was removed.", user.getEmail(), id);
     }
 }

@@ -22,8 +22,8 @@ public class UserController {
     @PostMapping
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         UserDto createdUser = userService.createUser(userDto);
-        log.info("PoU-1. createUser - user with email \"{}\" and id {} was created.",
-                createdUser.getEmail(), createdUser.getId());
+        log.info("createUser - user with email \"{}\" and id {} was created.", createdUser.getEmail(),
+                createdUser.getId());
         return createdUser;
     }
 
@@ -41,7 +41,7 @@ public class UserController {
     public UserDto updateUser(@RequestBody @Valid UserDto userDto,
                               @PathVariable(value = "id", required = false) Long id) {
         UserDto updatedUser = userService.updateUser(userDto, id);
-        log.info("PaU-1. updateUser - user with email \"{}\" and id {} was updated.", updatedUser.getEmail(), id);
+        log.info("updateUser - user with email \"{}\" and id {} was updated.", updatedUser.getEmail(), id);
         return updatedUser;
     }
 
