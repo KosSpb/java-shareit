@@ -7,6 +7,7 @@ import java.util.Optional;
 
 @Deprecated
 public interface UserStorage {
+
     User createUser(User user);
 
     Optional<User> updateUser(User user);
@@ -16,4 +17,5 @@ public interface UserStorage {
     Optional<User> getUserById(Long id);
 
     Optional<User> removeUser(Long id);
+
 }

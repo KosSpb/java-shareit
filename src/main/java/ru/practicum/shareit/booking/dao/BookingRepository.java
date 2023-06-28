@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+
     List<Booking> findByBookerOrderByStartDesc(User booker);
 
     List<Booking> findByBookerAndEndBeforeOrderByEndDesc(User booker, LocalDateTime currentTime);
@@ -53,5 +54,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     BookingShort findFirstByItemAndStartAfterAndStatusInOrderByStartAsc(Item item, LocalDateTime currentTime,
                                                                         Collection<BookingStatus> statuses);
 
-    List<Booking>findByItemAndBookerAndEndBefore(Item item, User booker, LocalDateTime currentTime);
+    List<Booking> findByItemAndBookerAndEndBefore(Item item, User booker, LocalDateTime currentTime);
+
 }
