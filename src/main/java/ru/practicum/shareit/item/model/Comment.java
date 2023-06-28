@@ -1,8 +1,7 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.item.model;
 
 import lombok.*;
-import ru.practicum.shareit.booking.enums.BookingStatus;
-import ru.practicum.shareit.item.model.Item;
+import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
@@ -14,15 +13,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "bookings")
-public class Booking {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "start_date", nullable = false)
-    private LocalDateTime start;
-    @Column(name = "end_date", nullable = false)
-    private LocalDateTime end;
+    @NotNull
+    private String text;
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
@@ -30,10 +27,10 @@ public class Booking {
     private Item item;
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booker_id")
+    @JoinColumn(name = "author_id")
     @ToString.Exclude
-    private User booker;
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "status_id")
-    private BookingStatus status;
+    private User author;
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private LocalDateTime created;
 }

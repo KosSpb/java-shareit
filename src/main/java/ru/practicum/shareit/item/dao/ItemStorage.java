@@ -6,6 +6,7 @@ import ru.practicum.shareit.user.User;
 import java.util.Collection;
 import java.util.Optional;
 
+@Deprecated
 public interface ItemStorage {
     Item createItem(Item item);
 

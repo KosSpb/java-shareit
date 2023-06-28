@@ -5,6 +5,7 @@ import ru.practicum.shareit.user.User;
 import java.util.Collection;
 import java.util.Optional;
 
+@Deprecated
 public interface UserStorage {
     User createUser(User user);
 

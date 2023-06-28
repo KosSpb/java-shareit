@@ -8,6 +8,7 @@ import ru.practicum.shareit.user.User;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Repository
 public class InMemoryItemStorage implements ItemStorage {
     private long generatedId;
