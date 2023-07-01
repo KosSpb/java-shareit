@@ -48,7 +48,7 @@ public class BookingService {
             throw new NotFoundException("Вещи с данным id не существует.");
         });
 
-        if (item.getOwner().equals(user)) {
+        if (item.getOwner().getId().equals(user.getId())) {
             log.info("createBooking - owner {} trying to book his item, id: {}", userId, item.getId());
             throw new NotFoundException("Владелец вещи не может её забронировать.");
         }
@@ -119,8 +119,8 @@ public class BookingService {
                 bookingsOfUser = bookingRepository.findByBookerAndEndBeforeOrderByEndDesc(user, LocalDateTime.now());
                 break;
             case CURRENT:
-                bookingsOfUser = bookingRepository.findByBookerAndCurrentTimeOrderByStartDesc(user,
-                        LocalDateTime.now());
+                bookingsOfUser = bookingRepository.findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(user,
+                        LocalDateTime.now(), LocalDateTime.now());
                 break;
             case FUTURE:
                 bookingsOfUser = bookingRepository.findByBookerAndStartAfterOrderByStartDesc(user, LocalDateTime.now());
@@ -159,8 +159,8 @@ public class BookingService {
                         LocalDateTime.now());
                 break;
             case CURRENT:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndCurrentTimeOrderByStartDesc(itemsOfOwner,
-                        LocalDateTime.now());
+                bookingsForItemsOfOwner = bookingRepository.findByItemInAndStartBeforeAndEndAfterOrderByStartDesc(
+                        itemsOfOwner, LocalDateTime.now(), LocalDateTime.now());
                 break;
             case FUTURE:
                 bookingsForItemsOfOwner = bookingRepository.findByItemInAndStartAfterOrderByStartDesc(itemsOfOwner,

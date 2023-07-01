@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.Booking;
@@ -121,7 +120,17 @@ public class ItemService {
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
 
+        Set<BookingStatus> allowableStatuses = Set.of(BookingStatus.WAITING, BookingStatus.APPROVED);
         List<Item> itemsOfOwner = itemRepository.findByOwner(user);
+
+        List<Booking> lastBookings = bookingRepository.findAllLastBookings(itemsOfOwner, LocalDateTime.now(),
+                allowableStatuses);
+        List<Booking> currentBookings = bookingRepository.findAllCurrentBookings(itemsOfOwner, LocalDateTime.now(),
+                allowableStatuses);
+        List<Booking> nextBookings = bookingRepository.findAllNextBookings(itemsOfOwner, LocalDateTime.now(),
+                allowableStatuses);
+
+        List<Comment> commentsOfItems = commentRepository.findByItemIn(itemsOfOwner);
 
         return itemsOfOwner.stream()
                 .map(ItemMapper::mapItemToDto)
@@ -135,9 +144,10 @@ public class ItemService {
                                         "не найден совпадающий id для Item");
                             });
 
-                    addLastAndNextBookingToItemDto(item, itemResponseDto);
+                    addAllBookingsToAllItemDto(itemResponseDto, lastBookings, currentBookings, nextBookings);
 
-                    itemResponseDto.setComments(commentRepository.findByItem(item).stream()
+                    itemResponseDto.setComments(commentsOfItems.stream()
+                            .filter(comment -> comment.getItem().getId().equals(item.getId()))
                             .map(CommentMapper::mapCommentToDto)
                             .collect(Collectors.toUnmodifiableList()));
                 })
@@ -152,34 +162,6 @@ public class ItemService {
         return itemRepository.searchItemsByText(text).stream()
                 .map(ItemMapper::mapItemToDto)
                 .collect(Collectors.toUnmodifiableList());
-    }
-
-    private void addLastAndNextBookingToItemDto(Item item, ItemResponseDto itemResponseDto) {
-        Set<BookingStatus> allowableStatuses = Set.of(BookingStatus.WAITING, BookingStatus.APPROVED);
-
-        BookingShort lastBooking = null;
-        List<BookingShort> oneLastBooking =
-                bookingRepository.findLastBookingWithStartInPartAndEndInFuture(
-                        item, LocalDateTime.now(), allowableStatuses, PageRequest.of(0, 1));
-        if (oneLastBooking.size() > 0) {
-            lastBooking = oneLastBooking.get(0);
-        }
-        if (lastBooking == null) {
-            lastBooking = bookingRepository.findFirstByItemAndEndBeforeAndStatusInOrderByEndDesc(
-                    item, LocalDateTime.now(), allowableStatuses);
-        }
-
-        BookingShort nextBooking = bookingRepository.findFirstByItemAndStartAfterAndStatusInOrderByStartAsc(
-                item, LocalDateTime.now(), allowableStatuses);
-
-        if (lastBooking != null) {
-            itemResponseDto.setLastBooking(
-                    new BookingForItemDto(lastBooking.getId(), lastBooking.getBooker().getId()));
-        }
-        if (nextBooking != null) {
-            itemResponseDto.setNextBooking(
-                    new BookingForItemDto(nextBooking.getId(), nextBooking.getBooker().getId()));
-        }
     }
 
     public CommentDto createComment(CommentDto commentDto, Long id, Long userId) {
@@ -202,6 +184,69 @@ public class ItemService {
             log.info("createComment - user with id {} is commenting not booked item with id {}", userId, id);
             throw new NotAvailableException("Отзыв может оставить только тот пользователь, который брал эту вещь " +
                     "в аренду, и только после окончания срока аренды.");
+        }
+    }
+
+    private void addLastAndNextBookingToItemDto(Item item, ItemResponseDto itemResponseDto) {
+        Set<BookingStatus> allowableStatuses = Set.of(BookingStatus.WAITING, BookingStatus.APPROVED);
+
+        BookingShort lastBooking =
+                bookingRepository.findFirstByItemAndStartBeforeAndEndAfterAndStatusInOrderByStartAsc(
+                        item, LocalDateTime.now(), LocalDateTime.now(), allowableStatuses);
+
+        if (lastBooking == null) {
+            lastBooking = bookingRepository.findFirstByItemAndEndBeforeAndStatusInOrderByEndDesc(
+                    item, LocalDateTime.now(), allowableStatuses);
+        }
+
+        BookingShort nextBooking = bookingRepository.findFirstByItemAndStartAfterAndStatusInOrderByStartAsc(
+                item, LocalDateTime.now(), allowableStatuses);
+
+        if (lastBooking != null) {
+            itemResponseDto.setLastBooking(
+                    new BookingForItemDto(lastBooking.getId(), lastBooking.getBooker().getId()));
+        }
+        if (nextBooking != null) {
+            itemResponseDto.setNextBooking(
+                    new BookingForItemDto(nextBooking.getId(), nextBooking.getBooker().getId()));
+        }
+    }
+
+    private void addAllBookingsToAllItemDto(ItemResponseDto itemResponseDto, List<Booking> lastBookings,
+                                            List<Booking> currentBookings, List<Booking> nextBookings) {
+        Booking lastBooking = null;
+        List<Booking> oneLastBooking = currentBookings.stream()
+                .filter((Booking b) -> b.getItem().getId().equals(itemResponseDto.getId()))
+                .collect(Collectors.toList());
+        if (oneLastBooking.size() > 0) {
+            lastBooking = oneLastBooking.get(0);
+        }
+
+        if (lastBooking == null) {
+            oneLastBooking = lastBookings.stream()
+                    .filter((Booking b) -> b.getItem().getId().equals(itemResponseDto.getId()))
+                    .collect(Collectors.toList());
+
+            if (oneLastBooking.size() > 0) {
+                lastBooking = oneLastBooking.get(0);
+            }
+        }
+
+        Booking nextBooking = null;
+        List<Booking> oneNextBooking = nextBookings.stream()
+                .filter((Booking b) -> b.getItem().getId().equals(itemResponseDto.getId()))
+                .collect(Collectors.toList());
+        if (oneNextBooking.size() > 0) {
+            nextBooking = oneNextBooking.get(0);
+        }
+
+        if (lastBooking != null) {
+            itemResponseDto.setLastBooking(
+                    new BookingForItemDto(lastBooking.getId(), lastBooking.getBooker().getId()));
+        }
+        if (nextBooking != null) {
+            itemResponseDto.setNextBooking(
+                    new BookingForItemDto(nextBooking.getId(), nextBooking.getBooker().getId()));
         }
     }
 }
