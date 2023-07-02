@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ItemDto {
+public class ItemRequestDto {
     private Long id;
     @NotNull(groups = OnCreate.class, message = "Название вещи не может быть null")
     @NullableNotBlank(message = "Название вещи не может быть пустым")

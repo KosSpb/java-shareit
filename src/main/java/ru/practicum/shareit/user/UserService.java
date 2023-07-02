@@ -2,12 +2,14 @@ package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ru.practicum.shareit.exception.AlreadyExistException;
 import ru.practicum.shareit.exception.NoBodyInRequestException;
 import ru.practicum.shareit.exception.NoIdInRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.validation.OnCreate;
 
@@ -19,26 +21,31 @@ import java.util.stream.Collectors;
 @Slf4j
 @Validated
 public class UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Validated(OnCreate.class)
     public UserDto createUser(@Valid UserDto userDto) {
-        return UserMapper.mapUserToDto(userStorage.createUser(UserMapper.mapDtoToUser(userDto)));
+        try {
+            return UserMapper.mapUserToDto(userRepository.save(UserMapper.mapDtoToUser(userDto)));
+        } catch (DataIntegrityViolationException exception) {
+            log.info("createUser - user e-mail is already exists: {}", userDto.getEmail());
+            throw new AlreadyExistException("Пользователь с данным email уже существует.");
+        }
     }
 
     public Collection<UserDto> getUsersList() {
-        return userStorage.getUsersList().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::mapUserToDto)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     public UserDto getUserById(Long id) {
-        return UserMapper.mapUserToDto(userStorage.getUserById(id).orElseThrow(() -> {
+        return UserMapper.mapUserToDto(userRepository.findById(id).orElseThrow(() -> {
             log.info("getUserById - user id not found: {}", id);
             throw new NotFoundException("Пользователя с данным id не существует.");
         }));
@@ -57,17 +64,32 @@ public class UserService {
             throw new NoBodyInRequestException("При обновлении не были переданы данные о пользователе.");
         }
 
-        return UserMapper.mapUserToDto(userStorage.updateUser(UserMapper.mapDtoToUser(userDto)).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             log.info("updateUser - user id not found: {}", userDto);
             throw new NotFoundException("Пользователя с данным id не существует.");
-        }));
+        });
+
+        if (userDto.getName() == null) {
+            userDto.setName(user.getName());
+        }
+        if (userDto.getEmail() == null) {
+            userDto.setEmail(user.getEmail());
+        }
+
+        try {
+            return UserMapper.mapUserToDto(userRepository.save(UserMapper.mapDtoToUser(userDto)));
+        } catch (DataIntegrityViolationException exception) {
+            log.info("updateUser - e-mail is already in use: {}", userDto.getEmail());
+            throw new AlreadyExistException("Данный email уже занят.");
+        }
     }
 
     public void removeUser(Long id) {
-        User user = userStorage.removeUser(id).orElseThrow(() -> {
+        User user = userRepository.findById(id).orElseThrow(() -> {
             log.info("removeUser - user id '{}' not found", id);
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
+        userRepository.deleteById(id);
         log.info("removeUser - user with email \"{}\" and id {} was removed.", user.getEmail(), id);
     }
 }
