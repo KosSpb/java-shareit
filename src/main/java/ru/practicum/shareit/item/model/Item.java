@@ -36,15 +36,11 @@ public class Item {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Item item = (Item) o;
-        return Objects.equals(id, item.id)
-                && Objects.equals(name, item.name)
-                && Objects.equals(description, item.description)
-                && Objects.equals(isAvailable, item.isAvailable)
-                && Objects.equals(owner, item.owner);
+        return Objects.equals(id, item.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, isAvailable, owner);
+        return Objects.hash(id);
     }
 }
