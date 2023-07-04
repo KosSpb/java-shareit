@@ -50,29 +50,26 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByItemAndBookerAndEndBefore(Item item, User booker, LocalDateTime currentTime);
 
     @Query("select b from Booking b " +
-            "where b.item.id in " +
-            "(select b2.item.id from Booking b2 " +
+            "where b.end in " +
+            "(select max(b2.end) from Booking b2 " +
             "where b2.item in ?1 and b2.end < ?2 and b2.status in ?3 " +
-            "group by b2.item.id " +
-            "having max(b2.end) = b.end)")
+            "group by b2.item)")
     List<Booking> findAllLastBookings(Collection<Item> items, LocalDateTime currentTime,
                                       Collection<BookingStatus> statuses);
 
     @Query("select b from Booking b " +
-            "where b.item.id in " +
-            "(select b2.item.id from Booking b2 " +
+            "where b.start in " +
+            "(select max(b2.start) from Booking b2 " +
             "where b2.item in ?1 and b2.start < ?2 and b2.end > ?2 and b2.status in ?3 " +
-            "group by b2.item.id " +
-            "having max(b2.start) = b.start)")
+            "group by b2.item)")
     List<Booking> findAllCurrentBookings(Collection<Item> items, LocalDateTime currentTime,
                                          Collection<BookingStatus> statuses);
 
     @Query("select b from Booking b " +
-            "where b.item.id in " +
-            "(select b2.item.id from Booking b2 " +
+            "where b.start in " +
+            "(select min(b2.start) from Booking b2 " +
             "where b2.item in ?1 and b2.start > ?2 and b2.status in ?3 " +
-            "group by b2.item.id " +
-            "having min(b2.start) = b.start)")
+            "group by b2.item)")
     List<Booking> findAllNextBookings(Collection<Item> items, LocalDateTime currentTime,
                                       Collection<BookingStatus> statuses);
 
