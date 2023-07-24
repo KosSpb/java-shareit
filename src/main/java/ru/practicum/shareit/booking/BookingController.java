@@ -2,17 +2,20 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.enums.BookingState;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Collection;
 
 @RestController
 @RequestMapping(path = "/bookings")
 @Slf4j
+@Validated
 public class BookingController {
     private final BookingService bookingService;
 
@@ -46,16 +49,20 @@ public class BookingController {
     @GetMapping
     public Collection<BookingResponseDto> getAllBookingsOfUser(
             @RequestParam(value = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         BookingState bookingState = BookingState.findByState(state);
-        return bookingService.getAllBookingsOfUser(bookingState, userId);
+        return bookingService.getAllBookingsOfUser(bookingState, from, size, userId);
     }
 
     @GetMapping("/owner")
     public Collection<BookingResponseDto> getAllBookingsForItemsOfOwner(
             @RequestParam(value = "state", defaultValue = "ALL") String state,
+            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         BookingState bookingState = BookingState.findByState(state);
-        return bookingService.getAllBookingsForItemsOfOwner(bookingState, userId);
+        return bookingService.getAllBookingsForItemsOfOwner(bookingState, from, size, userId);
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.*;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
@@ -30,6 +31,10 @@ public class Item {
     @JoinColumn(name = "owner_id")
     @ToString.Exclude
     private User owner;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
+    @ToString.Exclude
+    private ItemRequest itemRequest;
 
     @Override
     public boolean equals(Object o) {
