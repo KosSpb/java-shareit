@@ -34,7 +34,7 @@ public class ItemRequestController {
     @GetMapping
     public Collection<ItemRequestDtoOfResponse> getAllItemRequestsOfApplicant(
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
-        return itemRequestService.getAllItemRequestsOfApplicant(userId);
+        return itemRequestService.getAllItemRequests(0, 0, userId, true);
     }
 
     @GetMapping("/all")
@@ -42,7 +42,7 @@ public class ItemRequestController {
             @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
             @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
-        return itemRequestService.getAllItemRequests(from, size, userId);
+        return itemRequestService.getAllItemRequests(from, size, userId, false);
     }
 
     @GetMapping("/{requestId}")

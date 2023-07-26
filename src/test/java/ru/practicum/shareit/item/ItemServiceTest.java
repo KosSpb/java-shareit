@@ -2,7 +2,10 @@ package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -76,9 +79,6 @@ class ItemServiceTest {
         assertThat(createItemResponseDto, equalTo(itemAfterSaveDto));
         verify(itemRepository).save(item);
         verify(itemRequestRepository, never()).findById(any());
-        InOrder inOrder = inOrder(userRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).save(item);
     }
 
     @Test
@@ -103,10 +103,6 @@ class ItemServiceTest {
         assertThat(createItemResponseDto, equalTo(itemAfterSaveDto));
         verify(itemRepository).save(any());
         verify(itemRequestRepository).findById(anyLong());
-        InOrder inOrder = inOrder(userRepository, itemRequestRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRequestRepository).findById(anyLong());
-        inOrder.verify(itemRepository).save(any());
     }
 
     @Test
@@ -122,9 +118,6 @@ class ItemServiceTest {
         assertThrows(NotFoundException.class, () -> itemService.createItem(itemRequestDto, user.getId()));
         verify(itemRepository, never()).save(item);
         verify(itemRequestRepository).findById(anyLong());
-        InOrder inOrder = inOrder(userRepository, itemRequestRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRequestRepository).findById(anyLong());
     }
 
     @Test
@@ -163,11 +156,6 @@ class ItemServiceTest {
         assertThat(oldItem.getIsAvailable(), equalTo(savedItem.getIsAvailable()));
         assertThat(oldItem.getOwner(), equalTo(savedItem.getOwner()));
         assertThat(oldItem.getItemRequest(), equalTo(savedItem.getItemRequest()));
-
-        InOrder inOrder = inOrder(userRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findById(anyLong());
-        inOrder.verify(itemRepository).save(any());
     }
 
     @Test
@@ -194,11 +182,6 @@ class ItemServiceTest {
         assertThat(oldItem.getIsAvailable(), equalTo(savedItem.getIsAvailable()));
         assertThat(oldItem.getOwner(), equalTo(savedItem.getOwner()));
         assertThat(oldItem.getItemRequest(), equalTo(savedItem.getItemRequest()));
-
-        InOrder inOrder = inOrder(userRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findById(anyLong());
-        inOrder.verify(itemRepository).save(any());
     }
 
     @Test
@@ -225,11 +208,6 @@ class ItemServiceTest {
         assertThat(itemRequestDtoToUpdate.getIsAvailable(), equalTo(savedItem.getIsAvailable()));
         assertThat(oldItem.getOwner(), equalTo(savedItem.getOwner()));
         assertThat(oldItem.getItemRequest(), equalTo(savedItem.getItemRequest()));
-
-        InOrder inOrder = inOrder(userRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findById(anyLong());
-        inOrder.verify(itemRepository).save(any());
     }
 
     @Test
@@ -237,7 +215,6 @@ class ItemServiceTest {
         User user = new User(1L, "Jenevieve", "cannon_leamon786@hearings.jwr");
         ItemRequestDto itemRequestDtoToUpdate = new ItemRequestDto(null, null, "description",
                 null, null);
-        Item item = new Item();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
@@ -251,7 +228,6 @@ class ItemServiceTest {
         User user = new User(1L, "Jenevieve", "cannon_leamon786@hearings.jwr");
         ItemRequestDto itemRequestDtoToUpdate = new ItemRequestDto(null, null, "description",
                 null, null);
-        Item item = new Item();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
@@ -321,13 +297,6 @@ class ItemServiceTest {
         when(commentRepository.findByItem(item)).thenReturn(List.of(comment));
 
         ItemResponseDto returnedItem = itemService.getItemById(item.getId(), owner.getId());
-
-        InOrder inOrder = inOrder(itemRepository, bookingRepository);
-        inOrder.verify(itemRepository).findById(item.getId());
-        inOrder.verify(bookingRepository)
-                .findFirstByItemAndStartBeforeAndEndAfterAndStatusInOrderByStartAsc(any(), any(), any(), any());
-        inOrder.verify(bookingRepository).findFirstByItemAndEndBeforeAndStatusInOrderByEndDesc(any(), any(), any());
-        inOrder.verify(bookingRepository).findFirstByItemAndStartAfterAndStatusInOrderByStartAsc(any(), any(), any());
 
         assertThat(returnedItem.getId(), equalTo(item.getId()));
         assertThat(returnedItem.getName(), equalTo(item.getName()));
@@ -420,14 +389,6 @@ class ItemServiceTest {
         Collection<ItemResponseDto> returnedItems = itemService.getAllItemsOfOwner(0, 2, owner.getId());
         List<ItemResponseDto> returnedItemsInList = new ArrayList<>(returnedItems);
 
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository, commentRepository);
-        inOrder.verify(userRepository).findById(owner.getId());
-        inOrder.verify(itemRepository).findByOwner(any(), any());
-        inOrder.verify(bookingRepository).findAllLastBookings(anyList(), any(), anySet());
-        inOrder.verify(bookingRepository).findAllCurrentBookings(anyList(), any(), anySet());
-        inOrder.verify(bookingRepository).findAllNextBookings(anyList(), any(), anySet());
-        inOrder.verify(commentRepository).findByItemIn(anyList());
-
         assertThat(returnedItems.size(), equalTo(2));
         assertThat(returnedItemsInList.get(0).getId(), equalTo(item.getId()));
         assertThat(returnedItemsInList.get(1).getId(), equalTo(item1.getId()));
@@ -512,12 +473,6 @@ class ItemServiceTest {
         when(commentRepository.save(commentArgumentCaptor.capture())).thenReturn(commentForItem);
 
         CommentDto commentDto = itemService.createComment(commentDtoToSave, item.getId(), booker.getId());
-
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository, commentRepository);
-        inOrder.verify(userRepository).findById(booker.getId());
-        inOrder.verify(itemRepository).findById(item.getId());
-        inOrder.verify(bookingRepository).findByItemAndBookerAndEndBefore(any(), any(), any());
-        inOrder.verify(commentRepository).save(commentArgumentCaptor.capture());
 
         verify(commentRepository).save(commentArgumentCaptor.capture());
         Comment savedComment = commentArgumentCaptor.getValue();

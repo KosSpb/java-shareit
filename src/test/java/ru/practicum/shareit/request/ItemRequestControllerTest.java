@@ -109,7 +109,8 @@ class ItemRequestControllerTest {
         List<ItemRequestDtoOfResponse> itemRequestsOfApplicant =
                 List.of(itemRequestDtoOfResponse, itemRequestDtoOfResponse1);
 
-        when(itemRequestService.getAllItemRequestsOfApplicant(1L)).thenReturn(itemRequestsOfApplicant);
+        when(itemRequestService.getAllItemRequests(0, 0, 1L, true))
+                .thenReturn(itemRequestsOfApplicant);
 
         mvc.perform(get("/requests")
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -118,7 +119,7 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(itemRequestsOfApplicant)));
 
-        verify(itemRequestService).getAllItemRequestsOfApplicant(anyLong());
+        verify(itemRequestService).getAllItemRequests(anyInt(), anyInt(), anyLong(), anyBoolean());
     }
 
     @Test
@@ -145,7 +146,7 @@ class ItemRequestControllerTest {
                         LocalDateTime.now().plusMinutes(1), items2);
         List<ItemRequestDtoOfResponse> itemRequests = List.of(itemRequestDtoOfResponse, itemRequestDtoOfResponse1);
 
-        when(itemRequestService.getAllItemRequests(0, 2, 1L)).thenReturn(itemRequests);
+        when(itemRequestService.getAllItemRequests(0, 2, 1L, false)).thenReturn(itemRequests);
 
         mvc.perform(get("/requests/all")
                         .param("from", "0")
@@ -156,7 +157,7 @@ class ItemRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(itemRequests)));
 
-        verify(itemRequestService).getAllItemRequests(0, 2, 1L);
+        verify(itemRequestService).getAllItemRequests(0, 2, 1L, false);
     }
 
     @Test
@@ -170,7 +171,7 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong());
+        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong(), anyBoolean());
     }
 
     @Test
@@ -184,7 +185,7 @@ class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
 
-        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong());
+        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong(), anyBoolean());
     }
 
     @Test

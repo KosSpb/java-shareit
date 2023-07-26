@@ -8,7 +8,6 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dao.ItemRequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOfRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOfResponse;
@@ -16,8 +15,12 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 @Slf4j
@@ -45,45 +48,32 @@ public class ItemRequestService {
                 itemRequestRepository.save(ItemRequestMapper.mapDtoToItemRequest(itemRequestDto, user)));
     }
 
-    public Collection<ItemRequestDtoOfResponse> getAllItemRequestsOfApplicant(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> {
-            log.info("getAllItemRequestsOfApplicant - user id not found: {}", userId);
-            throw new NotFoundException("Пользователя с данным id не существует.");
-        });
-
-        List<ItemRequest> itemRequestsOfApplicant = itemRequestRepository.findByApplicantOrderByCreatedDesc(user);
-        List<Item> requestedItems = itemRepository.findByItemRequestIn(itemRequestsOfApplicant);
-
-        return itemRequestsOfApplicant.stream()
-                .map(ItemRequestMapper::mapItemRequestToDto)
-                .peek(itemRequestDtoOfResponse -> {
-                    List<ItemResponseDto> items = requestedItems.stream()
-                            .filter((Item i) -> i.getItemRequest().getId().equals(itemRequestDtoOfResponse.getId()))
-                            .map(ItemMapper::mapItemToDto)
-                            .collect(Collectors.toList());
-                    itemRequestDtoOfResponse.setItems(items);
-                })
-                .collect(Collectors.toUnmodifiableList());
-    }
-
-    public Collection<ItemRequestDtoOfResponse> getAllItemRequests(int from, int size, Long userId) {
+    public Collection<ItemRequestDtoOfResponse> getAllItemRequests(int from, int size, Long userId,
+                                                                   boolean isItemRequestsOfApplicant) {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.info("getAllItemRequests - user id not found: {}", userId);
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
 
-        List<ItemRequest> allItemRequests = itemRequestRepository
-                .findByApplicantNotOrderByCreatedDesc(user, PageRequest.of(from > 0 ? from / size : 0, size))
-                .getContent();
-        List<Item> requestedItems = itemRepository.findByItemRequestIn(allItemRequests);
+        List<ItemRequest> allItemRequests;
+        if (isItemRequestsOfApplicant) {
+            allItemRequests = itemRequestRepository.findByApplicantOrderByCreatedDesc(user);
+        } else {
+            allItemRequests = itemRequestRepository
+                    .findByApplicantNotOrderByCreatedDesc(user, PageRequest.of(from > 0 ? from / size : 0, size))
+                    .getContent();
+        }
+
+        Map<Long, List<ItemResponseDto>> requestedItems =
+                itemRepository.findByItemRequestIn(allItemRequests).stream()
+                        .map(ItemMapper::mapItemToDto)
+                        .collect(groupingBy(ItemResponseDto::getRequestId));
 
         return allItemRequests.stream()
                 .map(ItemRequestMapper::mapItemRequestToDto)
                 .peek(itemRequestDtoOfResponse -> {
-                    List<ItemResponseDto> items = requestedItems.stream()
-                            .filter((Item i) -> i.getItemRequest().getId().equals(itemRequestDtoOfResponse.getId()))
-                            .map(ItemMapper::mapItemToDto)
-                            .collect(Collectors.toList());
+                    List<ItemResponseDto> items =
+                            requestedItems.getOrDefault(itemRequestDtoOfResponse.getId(), Collections.emptyList());
                     itemRequestDtoOfResponse.setItems(items);
                 })
                 .collect(Collectors.toUnmodifiableList());

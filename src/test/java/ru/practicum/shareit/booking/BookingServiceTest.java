@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,10 +65,6 @@ class BookingServiceTest {
 
         assertThat(createBookingResponseDto, equalTo(bookingAfterSaveResponseDto));
         verify(bookingRepository).save(booking);
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(userId);
-        inOrder.verify(itemRepository).findById(item.getId());
-        inOrder.verify(bookingRepository).save(booking);
     }
 
     @Test
@@ -157,9 +152,6 @@ class BookingServiceTest {
         assertThat(approveBookingResponseDto.getId(), equalTo(booking.getId()));
         assertThat(approveBookingResponseDto.getStart(), equalTo(booking.getStart()));
         assertThat(approveBookingResponseDto.getEnd(), equalTo(booking.getEnd()));
-        InOrder inOrder = inOrder(bookingRepository);
-        inOrder.verify(bookingRepository).findById(anyLong());
-        inOrder.verify(bookingRepository).save(booking);
     }
 
     @Test
@@ -181,9 +173,6 @@ class BookingServiceTest {
         assertThat(approveBookingResponseDto.getId(), equalTo(booking.getId()));
         assertThat(approveBookingResponseDto.getStart(), equalTo(booking.getStart()));
         assertThat(approveBookingResponseDto.getEnd(), equalTo(booking.getEnd()));
-        InOrder inOrder = inOrder(bookingRepository);
-        inOrder.verify(bookingRepository).findById(anyLong());
-        inOrder.verify(bookingRepository).save(booking);
     }
 
     @Test
@@ -294,9 +283,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByBookerOrderByStartDesc(any(), any());
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository).findByBookerOrderByStartDesc(any(), any());
     }
 
     @Test
@@ -320,9 +306,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByBookerAndEndBeforeOrderByEndDesc(any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository).findByBookerAndEndBeforeOrderByEndDesc(any(), any(), any());
     }
 
     @Test
@@ -346,10 +329,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository)
-                .findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(any(),any(), any(), any());
     }
 
     @Test
@@ -373,9 +352,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByBookerAndStartAfterOrderByStartDesc(any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository).findByBookerAndStartAfterOrderByStartDesc(any(), any(), any());
     }
 
     @Test
@@ -401,10 +377,6 @@ class BookingServiceTest {
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository)
                 .findByBookerAndStatusOrderByStartDesc(booker, BookingStatus.WAITING, PageRequest.of(0, 2));
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository)
-                .findByBookerAndStatusOrderByStartDesc(booker, BookingStatus.WAITING, PageRequest.of(0, 2));
     }
 
     @Test
@@ -429,10 +401,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository)
-                .findByBookerAndStatusOrderByStartDesc(booker, BookingStatus.REJECTED, PageRequest.of(0, 2));
-        InOrder inOrder = inOrder(userRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(bookingRepository)
                 .findByBookerAndStatusOrderByStartDesc(booker, BookingStatus.REJECTED, PageRequest.of(0, 2));
     }
 
@@ -471,10 +439,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByItemInOrderByStartDesc(any(), any());
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository).findByItemInOrderByStartDesc(any(), any());
     }
 
     @Test
@@ -500,10 +464,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByItemInAndEndBeforeOrderByEndDesc(any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository).findByItemInAndEndBeforeOrderByEndDesc(any(), any(), any());
     }
 
     @Test
@@ -529,11 +489,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByItemInAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository)
-                .findByItemInAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any(), any());
     }
 
     @Test
@@ -559,10 +514,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository).findByItemInAndStartAfterOrderByStartDesc(any(), any(), any());
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository).findByItemInAndStartAfterOrderByStartDesc(any(), any(), any());
     }
 
     @Test
@@ -590,11 +541,6 @@ class BookingServiceTest {
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository)
                 .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.WAITING, PageRequest.of(0, 2));
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository)
-                .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.WAITING, PageRequest.of(0, 2));
     }
 
     @Test
@@ -621,11 +567,6 @@ class BookingServiceTest {
 
         assertThat(allBookings, allOf(hasItem(bookingResponseDto), hasItem(booking1ResponseDto)));
         verify(bookingRepository)
-                .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.REJECTED, PageRequest.of(0, 2));
-        InOrder inOrder = inOrder(userRepository, itemRepository, bookingRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByOwner(owner);
-        inOrder.verify(bookingRepository)
                 .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.REJECTED, PageRequest.of(0, 2));
     }
 

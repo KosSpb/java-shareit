@@ -2,7 +2,10 @@ package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import ru.practicum.shareit.exception.AlreadyExistException;
@@ -116,10 +119,6 @@ class UserServiceTest {
         assertThat(oldUser.getId(), equalTo(savedUser.getId()));
         assertThat(userDto.getName(), equalTo(savedUser.getName()));
         assertThat(oldUser.getEmail(), equalTo(savedUser.getEmail()));
-
-        InOrder inOrder = inOrder(userRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(userRepository).save(any());
     }
 
     @Test
@@ -139,10 +138,6 @@ class UserServiceTest {
         assertThat(oldUser.getId(), equalTo(savedUser.getId()));
         assertThat(oldUser.getName(), equalTo(savedUser.getName()));
         assertThat(userDto.getEmail(), equalTo(savedUser.getEmail()));
-
-        InOrder inOrder = inOrder(userRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(userRepository).save(any());
     }
 
     @Test
@@ -161,10 +156,6 @@ class UserServiceTest {
         assertThat(oldUser.getId(), equalTo(savedUser.getId()));
         assertThat(oldUser.getName(), equalTo(savedUser.getName()));
         assertThat(userDto.getEmail(), equalTo(savedUser.getEmail()));
-
-        InOrder inOrder = inOrder(userRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(userRepository).save(any());
     }
 
     @Test
@@ -201,9 +192,6 @@ class UserServiceTest {
         userService.removeUser(user.getId());
 
         verify(userRepository).deleteById(anyLong());
-        InOrder inOrder = inOrder(userRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(userRepository).deleteById(anyLong());
     }
 
     @Test

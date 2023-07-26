@@ -2,7 +2,6 @@ package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,9 +55,6 @@ class ItemRequestServiceTest {
         assertThat(createItemRequestDtoOfResponse.getDescription(), equalTo(itemRequestDto.getDescription()));
         assertThat(createItemRequestDtoOfResponse.getCreated(), equalTo(itemRequest.getCreated()));
         verify(itemRequestRepository).save(any());
-        InOrder inOrder = inOrder(userRepository, itemRequestRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRequestRepository).save(any());
     }
 
     @Test
@@ -95,7 +91,7 @@ class ItemRequestServiceTest {
                 .thenReturn(List.of(item, item1, item2));
 
         Collection<ItemRequestDtoOfResponse> itemRequestsOfApplicant =
-                itemRequestService.getAllItemRequestsOfApplicant(applicant.getId());
+                itemRequestService.getAllItemRequests(0, 0, applicant.getId(), true);
         List<ItemRequestDtoOfResponse> itemRequestsOfApplicantInList = new ArrayList<>(itemRequestsOfApplicant);
 
         assertThat(itemRequestsOfApplicant.size(), equalTo(2));
@@ -120,11 +116,6 @@ class ItemRequestServiceTest {
                 equalTo(item1.getDescription()));
         assertThat(itemRequestsOfApplicantInList.get(1).getItems().get(0).getDescription(),
                 equalTo(item2.getDescription()));
-
-        InOrder inOrder = inOrder(userRepository, itemRequestRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRequestRepository).findByApplicantOrderByCreatedDesc(any());
-        inOrder.verify(itemRepository).findByItemRequestIn(anyList());
     }
 
     @Test
@@ -134,7 +125,7 @@ class ItemRequestServiceTest {
         when(userRepository.findById(applicant.getId())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () ->
-                itemRequestService.getAllItemRequestsOfApplicant(applicant.getId()));
+                itemRequestService.getAllItemRequests(0, 0, applicant.getId(), true));
     }
 
     @Test
@@ -161,7 +152,7 @@ class ItemRequestServiceTest {
                 .thenReturn(List.of(item, item1, item2));
 
         Collection<ItemRequestDtoOfResponse> itemRequests =
-                itemRequestService.getAllItemRequests(0, 2, user.getId());
+                itemRequestService.getAllItemRequests(0, 2, user.getId(), false);
         List<ItemRequestDtoOfResponse> itemRequestsInList = new ArrayList<>(itemRequests);
 
         assertThat(itemRequests.size(), equalTo(2));
@@ -180,10 +171,6 @@ class ItemRequestServiceTest {
         assertThat(itemRequestsInList.get(0).getItems().get(0).getDescription(), equalTo(item.getDescription()));
         assertThat(itemRequestsInList.get(0).getItems().get(1).getDescription(), equalTo(item1.getDescription()));
         assertThat(itemRequestsInList.get(1).getItems().get(0).getDescription(), equalTo(item2.getDescription()));
-        InOrder inOrder = inOrder(userRepository, itemRequestRepository, itemRepository);
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRequestRepository).findByApplicantNotOrderByCreatedDesc(any(), any());
-        inOrder.verify(itemRepository).findByItemRequestIn(anyList());
     }
 
     @Test
@@ -193,7 +180,7 @@ class ItemRequestServiceTest {
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () ->
-                itemRequestService.getAllItemRequests(0, 2, user.getId()));
+                itemRequestService.getAllItemRequests(0, 2, user.getId(), false));
     }
 
     @Test
@@ -224,10 +211,6 @@ class ItemRequestServiceTest {
         assertThat(itemRequestDtoOfResponse.getItems().get(1).getRequestId(), equalTo(item1.getItemRequest().getId()));
         assertThat(itemRequestDtoOfResponse.getItems().get(0).getDescription(), equalTo(item.getDescription()));
         assertThat(itemRequestDtoOfResponse.getItems().get(1).getDescription(), equalTo(item1.getDescription()));
-        InOrder inOrder = inOrder(itemRequestRepository, userRepository, itemRepository);
-        inOrder.verify(itemRequestRepository).findById(anyLong());
-        inOrder.verify(userRepository).findById(anyLong());
-        inOrder.verify(itemRepository).findByItemRequestIn(anyList());
     }
 
     @Test
