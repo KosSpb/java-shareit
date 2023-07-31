@@ -8,4 +8,8 @@ public interface BookingShort {
 
     User getBooker();
 
+    void setId(Long id);
+
+    void setBooker(User user);
+
 }

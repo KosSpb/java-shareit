@@ -2,17 +2,20 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Collection;
 
 @RestController
 @RequestMapping("/items")
 @Slf4j
+@Validated
 public class ItemController {
     private final ItemService itemService;
 
@@ -46,14 +49,18 @@ public class ItemController {
 
     @GetMapping
     public Collection<ItemResponseDto> getAllItemsOfOwner(
+            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
-        return itemService.getAllItemsOfOwner(userId);
+        return itemService.getAllItemsOfOwner(from, size, userId);
     }
 
     @GetMapping("/search")
     public Collection<ItemResponseDto> searchItemsByText(
+            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
             @RequestParam(value = "text") String text) {
-        return itemService.searchItemsByText(text);
+        return itemService.searchItemsByText(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

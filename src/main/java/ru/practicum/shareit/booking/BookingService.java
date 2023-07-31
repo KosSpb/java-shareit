@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
@@ -103,33 +105,39 @@ public class BookingService {
         }
     }
 
-    public Collection<BookingResponseDto> getAllBookingsOfUser(BookingState state, Long userId) {
+    public Collection<BookingResponseDto> getAllBookingsOfUser(BookingState state, int from, int size, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.info("getAllBookingsOfUser - user not found, id: {}", userId);
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
 
         List<Booking> bookingsOfUser = new ArrayList<>();
+        Pageable pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
 
         switch (state) {
             case ALL:
-                bookingsOfUser = bookingRepository.findByBookerOrderByStartDesc(user);
+                bookingsOfUser = bookingRepository.findByBookerOrderByStartDesc(user, pageRequest).getContent();
                 break;
             case PAST:
-                bookingsOfUser = bookingRepository.findByBookerAndEndBeforeOrderByEndDesc(user, LocalDateTime.now());
+                bookingsOfUser = bookingRepository
+                        .findByBookerAndEndBeforeOrderByEndDesc(user, LocalDateTime.now(), pageRequest).getContent();
                 break;
             case CURRENT:
-                bookingsOfUser = bookingRepository.findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(user,
-                        LocalDateTime.now(), LocalDateTime.now());
+                bookingsOfUser = bookingRepository
+                        .findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(
+                                user, LocalDateTime.now(), LocalDateTime.now(), pageRequest).getContent();
                 break;
             case FUTURE:
-                bookingsOfUser = bookingRepository.findByBookerAndStartAfterOrderByStartDesc(user, LocalDateTime.now());
+                bookingsOfUser = bookingRepository
+                        .findByBookerAndStartAfterOrderByStartDesc(user, LocalDateTime.now(), pageRequest).getContent();
                 break;
             case WAITING:
-                bookingsOfUser = bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.WAITING);
+                bookingsOfUser = bookingRepository
+                        .findByBookerAndStatusOrderByStartDesc(user, BookingStatus.WAITING, pageRequest).getContent();
                 break;
             case REJECTED:
-                bookingsOfUser = bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED);
+                bookingsOfUser = bookingRepository
+                        .findByBookerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED, pageRequest).getContent();
         }
 
         return bookingsOfUser.stream()
@@ -137,7 +145,8 @@ public class BookingService {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public Collection<BookingResponseDto> getAllBookingsForItemsOfOwner(BookingState state, Long userId) {
+    public Collection<BookingResponseDto> getAllBookingsForItemsOfOwner(BookingState state, int from, int size,
+                                                                        Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.info("getAllBookingsForItemsOfOwner - user not found, id: {}", userId);
             throw new NotFoundException("Пользователя с данным id не существует.");
@@ -149,30 +158,37 @@ public class BookingService {
         }
 
         List<Booking> bookingsForItemsOfOwner = new ArrayList<>();
+        Pageable pageRequest = PageRequest.of(from > 0 ? from / size : 0, size);
 
         switch (state) {
             case ALL:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInOrderByStartDesc(itemsOfOwner);
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInOrderByStartDesc(itemsOfOwner, pageRequest).getContent();
                 break;
             case PAST:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndEndBeforeOrderByEndDesc(itemsOfOwner,
-                        LocalDateTime.now());
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInAndEndBeforeOrderByEndDesc(itemsOfOwner, LocalDateTime.now(), pageRequest)
+                        .getContent();
                 break;
             case CURRENT:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndStartBeforeAndEndAfterOrderByStartDesc(
-                        itemsOfOwner, LocalDateTime.now(), LocalDateTime.now());
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInAndStartBeforeAndEndAfterOrderByStartDesc(
+                                itemsOfOwner, LocalDateTime.now(), LocalDateTime.now(), pageRequest).getContent();
                 break;
             case FUTURE:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndStartAfterOrderByStartDesc(itemsOfOwner,
-                        LocalDateTime.now());
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInAndStartAfterOrderByStartDesc(itemsOfOwner, LocalDateTime.now(), pageRequest)
+                        .getContent();
                 break;
             case WAITING:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndStatusOrderByStartDesc(itemsOfOwner,
-                        BookingStatus.WAITING);
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.WAITING, pageRequest)
+                        .getContent();
                 break;
             case REJECTED:
-                bookingsForItemsOfOwner = bookingRepository.findByItemInAndStatusOrderByStartDesc(itemsOfOwner,
-                        BookingStatus.REJECTED);
+                bookingsForItemsOfOwner = bookingRepository
+                        .findByItemInAndStatusOrderByStartDesc(itemsOfOwner, BookingStatus.REJECTED, pageRequest)
+                        .getContent();
         }
 
         return bookingsForItemsOfOwner.stream()

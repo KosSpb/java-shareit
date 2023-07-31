@@ -28,4 +28,5 @@ public class ItemRequestDto {
     @JsonProperty(value = "available")
     @NotNull(groups = OnCreate.class, message = "Доступность вещи не может быть null")
     private Boolean isAvailable;
+    private Long requestId;
 }

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.booking.Booking;
@@ -20,6 +21,8 @@ import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.dao.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.validation.OnCreate;
@@ -40,14 +43,19 @@ public class ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Autowired
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository,
-                       BookingRepository bookingRepository, CommentRepository commentRepository) {
+    public ItemService(ItemRepository itemRepository,
+                       UserRepository userRepository,
+                       BookingRepository bookingRepository,
+                       CommentRepository commentRepository,
+                       ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Validated(OnCreate.class)
@@ -57,7 +65,17 @@ public class ItemService {
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
 
-        return ItemMapper.mapItemToDto(itemRepository.save(ItemMapper.mapDtoToItem(itemRequestDto, user)));
+        Item item = ItemMapper.mapDtoToItem(itemRequestDto, user);
+
+        if (itemRequestDto.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(itemRequestDto.getRequestId()).orElseThrow(() -> {
+                log.info("createItem - item request id not found: {}", userId);
+                throw new NotFoundException("Запроса с данным id не существует.");
+            });
+            item.setItemRequest(itemRequest);
+        }
+
+        return ItemMapper.mapItemToDto(itemRepository.save(item));
     }
 
     public ItemResponseDto updateItem(ItemRequestDto itemRequestDto, Long id, Long userId) {
@@ -114,14 +132,15 @@ public class ItemService {
         return itemResponseDto;
     }
 
-    public Collection<ItemResponseDto> getAllItemsOfOwner(Long userId) {
+    public Collection<ItemResponseDto> getAllItemsOfOwner(int from, int size, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.info("getAllItemsOfOwner - user id not found: {}", userId);
             throw new NotFoundException("Пользователя с данным id не существует.");
         });
 
         Set<BookingStatus> allowableStatuses = Set.of(BookingStatus.WAITING, BookingStatus.APPROVED);
-        List<Item> itemsOfOwner = itemRepository.findByOwner(user);
+        List<Item> itemsOfOwner = itemRepository.findByOwner(user, PageRequest.of(from > 0 ? from / size : 0, size))
+                .getContent();
 
         List<Booking> lastBookings = bookingRepository.findAllLastBookings(itemsOfOwner, LocalDateTime.now(),
                 allowableStatuses);
@@ -154,12 +173,12 @@ public class ItemService {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public Collection<ItemResponseDto> searchItemsByText(String text) {
+    public Collection<ItemResponseDto> searchItemsByText(String text, int from, int size) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
 
-        return itemRepository.searchItemsByText(text).stream()
+        return itemRepository.searchItemsByText(text, PageRequest.of(from > 0 ? from / size : 0, size)).stream()
                 .map(ItemMapper::mapItemToDto)
                 .collect(Collectors.toUnmodifiableList());
     }
