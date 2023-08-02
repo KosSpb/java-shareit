@@ -379,7 +379,7 @@ class ItemServiceTest {
                 LocalDateTime.now().plusHours(6));
 
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        when(itemRepository.findByOwner(any(), any())).thenReturn(new PageImpl<>(List.of(item, item1)));
+        when(itemRepository.findByOwnerOrderByIdAsc(any(), any())).thenReturn(new PageImpl<>(List.of(item, item1)));
         when(bookingRepository.findAllLastBookings(anyList(), any(), anySet())).thenReturn(List.of(lastBooking));
         when(bookingRepository.findAllCurrentBookings(anyList(), any(), anySet())).thenReturn(List.of(currentBooking));
         when(bookingRepository.findAllNextBookings(anyList(), any(), anySet()))

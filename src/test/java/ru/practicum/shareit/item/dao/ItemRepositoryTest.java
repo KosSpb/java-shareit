@@ -66,14 +66,14 @@ class ItemRepositoryTest {
     @Test
     void findByOwnerWithPagination() {
         pageRequest = PageRequest.of(0, 1);
-        Page<Item> foundItems = itemRepository.findByOwner(owner1, pageRequest);
+        Page<Item> foundItems = itemRepository.findByOwnerOrderByIdAsc(owner1, pageRequest);
 
         assertThat(foundItems.getTotalElements(), equalTo(2L));
         assertThat(foundItems.getTotalPages(), equalTo(2));
         assertThat(foundItems.getContent().get(0), equalTo(item1));
 
         pageRequest = PageRequest.of(1, 1);
-        foundItems = itemRepository.findByOwner(owner1, pageRequest);
+        foundItems = itemRepository.findByOwnerOrderByIdAsc(owner1, pageRequest);
 
         assertThat(foundItems.getTotalElements(), equalTo(2L));
         assertThat(foundItems.getTotalPages(), equalTo(2));

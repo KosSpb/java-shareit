@@ -139,7 +139,7 @@ public class ItemService {
         });
 
         Set<BookingStatus> allowableStatuses = Set.of(BookingStatus.WAITING, BookingStatus.APPROVED);
-        List<Item> itemsOfOwner = itemRepository.findByOwner(user, PageRequest.of(from > 0 ? from / size : 0, size))
+        List<Item> itemsOfOwner = itemRepository.findByOwnerOrderByIdAsc(user, PageRequest.of(from > 0 ? from / size : 0, size))
                 .getContent();
 
         List<Booking> lastBookings = bookingRepository.findAllLastBookings(itemsOfOwner, LocalDateTime.now(),
