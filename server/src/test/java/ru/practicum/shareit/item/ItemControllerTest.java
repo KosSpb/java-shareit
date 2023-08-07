@@ -19,8 +19,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -145,34 +147,6 @@ class ItemControllerTest {
 
     @Test
     @SneakyThrows
-    void getAllItemsOfOwner_whenFromIsNegative_thenResponseStatusBadRequest() {
-        mvc.perform(get("/items")
-                        .param("from", "-1")
-                        .param("size", "2")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).getAllItemsOfOwner(anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllItemsOfOwner_whenSizeIsNotPositive_thenResponseStatusBadRequest() {
-        mvc.perform(get("/items")
-                        .param("from", "1")
-                        .param("size", "0")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).getAllItemsOfOwner(anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
     void searchItemsByText_whenFromIsNotNegativeAndSizeIsPositive_thenResponseStatusOkWithItemsResponseDtoCollectionInBody() {
         String text = "mobile";
         BookingForItemDto lastBooking1 = new BookingForItemDto(1L, 1L);
@@ -201,38 +175,6 @@ class ItemControllerTest {
                 .andExpect(content().json(mapper.writeValueAsString(foundItems)));
 
         verify(itemService).searchItemsByText(text, 0, 2);
-    }
-
-    @Test
-    @SneakyThrows
-    void searchItemsByText_whenFromIsNegative_thenResponseStatusBadRequest() {
-        String text = "mobile";
-
-        mvc.perform(get("/items/search")
-                        .param("from", "-1")
-                        .param("size", "2")
-                        .param("text", text)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).searchItemsByText(any(), anyInt(), anyInt());
-    }
-
-    @Test
-    @SneakyThrows
-    void searchItemsByText_whenSizeIsNotPositive_thenResponseStatusBadRequest() {
-        String text = "mobile";
-
-        mvc.perform(get("/items/search")
-                        .param("from", "1")
-                        .param("size", "0")
-                        .param("text", text)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).searchItemsByText(any(), anyInt(), anyInt());
     }
 
     @Test

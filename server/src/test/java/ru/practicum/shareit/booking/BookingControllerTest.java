@@ -153,40 +153,6 @@ class BookingControllerTest {
 
     @Test
     @SneakyThrows
-    void getAllBookingsOfUser_whenFromIsNegative_thenResponseStatusBadRequest() {
-        BookingState bookingState = BookingState.FUTURE;
-
-        mvc.perform(get("/bookings")
-                        .param("state", bookingState.toString())
-                        .param("from", "-1")
-                        .param("size", "2")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, never()).getAllBookingsOfUser(any(), anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllBookingsOfUser_whenSizeIsNotPositive_thenResponseStatusBadRequest() {
-        BookingState bookingState = BookingState.FUTURE;
-
-        mvc.perform(get("/bookings")
-                        .param("state", bookingState.toString())
-                        .param("from", "1")
-                        .param("size", "0")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, never()).getAllBookingsOfUser(any(), anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
     void getAllBookingsForItemsOfOwner_whenStateIsValidAndFromIsNotNegativeAndSizeIsPositive_thenResponseStatusOkWithBookingsResponseDtoCollectionInBody() {
         BookingState bookingState = BookingState.ALL;
         ItemForBookingDto item1 = new ItemForBookingDto(1L, "ball");
@@ -221,40 +187,6 @@ class BookingControllerTest {
                         .param("state", "WRONG state")
                         .param("from", "0")
                         .param("size", "2")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, never()).getAllBookingsForItemsOfOwner(any(), anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllBookingsForItemsOfOwner_whenFromIsNegative_thenResponseStatusBadRequest() {
-        BookingState bookingState = BookingState.ALL;
-
-        mvc.perform(get("/bookings/owner")
-                        .param("state", bookingState.toString())
-                        .param("from", "-1")
-                        .param("size", "2")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, never()).getAllBookingsForItemsOfOwner(any(), anyInt(), anyInt(), anyLong());
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllBookingsForItemsOfOwner_whenSizeIsNotPositive_thenResponseStatusBadRequest() {
-        BookingState bookingState = BookingState.ALL;
-
-        mvc.perform(get("/bookings/owner")
-                        .param("state", bookingState.toString())
-                        .param("from", "1")
-                        .param("size", "0")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .header("X-Sharer-User-Id", 1)
                         .accept(MediaType.APPLICATION_JSON))

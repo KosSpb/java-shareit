@@ -21,7 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -142,34 +143,6 @@ class ItemRequestControllerTest {
                 .andExpect(content().json(mapper.writeValueAsString(itemRequests)));
 
         verify(itemRequestService).getAllItemRequests(0, 2, 1L, false);
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllItemRequests_whenFromIsNegative_thenResponseStatusBadRequest() {
-        mvc.perform(get("/requests/all")
-                        .param("from", "-1")
-                        .param("size", "2")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong(), anyBoolean());
-    }
-
-    @Test
-    @SneakyThrows
-    void getAllItemRequests_whenSizeIsNotPositive_thenResponseStatusBadRequest() {
-        mvc.perform(get("/requests/all")
-                        .param("from", "1")
-                        .param("size", "0")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .header("X-Sharer-User-Id", 1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, never()).getAllItemRequests(anyInt(), anyInt(), anyLong(), anyBoolean());
     }
 
     @Test

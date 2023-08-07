@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.error.model.ErrorResponse;
 import ru.practicum.shareit.exception.*;
 
-import javax.validation.ConstraintViolationException;
-
 @RestControllerAdvice
 public class ErrorHandler {
     @ExceptionHandler
@@ -40,12 +38,6 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException exception) {
         return new ErrorResponse(exception.getFieldError().getDefaultMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleConstraintViolationException(final ConstraintViolationException exception) {
-        return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler

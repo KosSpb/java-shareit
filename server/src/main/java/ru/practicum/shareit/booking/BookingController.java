@@ -8,8 +8,6 @@ import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.enums.BookingState;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
 
 @RestController
@@ -25,7 +23,7 @@ public class BookingController {
     }
 
     @PostMapping
-    public BookingResponseDto createBooking(@RequestBody @Valid BookingRequestDto bookingRequestDto,
+    public BookingResponseDto createBooking(@RequestBody BookingRequestDto bookingRequestDto,
                                             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         BookingResponseDto createdBooking = bookingService.createBooking(bookingRequestDto, userId);
         log.info("createBooking - booking by user with id {} of item: \"{}\", with id {} was created.",
@@ -49,8 +47,8 @@ public class BookingController {
     @GetMapping
     public Collection<BookingResponseDto> getAllBookingsOfUser(
             @RequestParam(value = "state", defaultValue = "ALL") String state,
-            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
-            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
+            @RequestParam(value = "from", defaultValue = "0") int from,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         return bookingService.getAllBookingsOfUser(BookingState.valueOf(state), from, size, userId);
     }
@@ -58,8 +56,8 @@ public class BookingController {
     @GetMapping("/owner")
     public Collection<BookingResponseDto> getAllBookingsForItemsOfOwner(
             @RequestParam(value = "state", defaultValue = "ALL") String state,
-            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
-            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
+            @RequestParam(value = "from", defaultValue = "0") int from,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         return bookingService.getAllBookingsForItemsOfOwner(BookingState.valueOf(state), from, size, userId);
     }

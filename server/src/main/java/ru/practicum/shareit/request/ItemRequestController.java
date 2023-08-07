@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOfRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDtoOfResponse;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
 
 @RestController
@@ -24,7 +22,7 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequestDtoOfResponse createItemRequest(@RequestBody @Valid ItemRequestDtoOfRequest itemRequestDto,
+    public ItemRequestDtoOfResponse createItemRequest(@RequestBody ItemRequestDtoOfRequest itemRequestDto,
                                                       @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         ItemRequestDtoOfResponse createdItemRequest = itemRequestService.createItemRequest(itemRequestDto, userId);
         log.info("createItemRequest - item request with id {} was created.", createdItemRequest.getId());
@@ -39,8 +37,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public Collection<ItemRequestDtoOfResponse> getAllItemRequests(
-            @RequestParam(value = "from", defaultValue = "0") @Min(0) int from,
-            @RequestParam(value = "size", defaultValue = "10") @Min(1) int size,
+            @RequestParam(value = "from", defaultValue = "0") int from,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestHeader(value = "X-Sharer-User-Id") Long userId) {
         return itemRequestService.getAllItemRequests(from, size, userId, false);
     }

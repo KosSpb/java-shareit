@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 @RestController
@@ -20,7 +19,7 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto createUser(@RequestBody @Valid UserDto userDto) {
+    public UserDto createUser(@RequestBody UserDto userDto) {
         UserDto createdUser = userService.createUser(userDto);
         log.info("createUser - user with email \"{}\" and id {} was created.", createdUser.getEmail(),
                 createdUser.getId());
@@ -38,7 +37,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto updateUser(@RequestBody @Valid UserDto userDto,
+    public UserDto updateUser(@RequestBody UserDto userDto,
                               @PathVariable(value = "id", required = false) Long id) {
         UserDto updatedUser = userService.updateUser(userDto, id);
         log.info("updateUser - user with email \"{}\" and id {} was updated.", updatedUser.getEmail(), id);

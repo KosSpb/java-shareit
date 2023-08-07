@@ -11,6 +11,7 @@ import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.enums.BookingState;
 import ru.practicum.shareit.client.BaseClient;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -32,10 +33,8 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> approveBookingByOwner(Long id, Boolean isApproved, Long userId) {
-        Map<String, Object> parameters = Map.of(
-                "approved", String.valueOf(isApproved)
-        );
-        return patch("/" + id + "?approved={approved}", userId, parameters);
+        return patch("/" + id + "?approved={approved}", userId,
+                Collections.singletonMap("approved", String.valueOf(isApproved)));
     }
 
     public ResponseEntity<Object> getBookingById(Long id, Long userId) {
